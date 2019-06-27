@@ -20,90 +20,82 @@ ma = Marshmallow(app)
 
 
 # Product Class/Model
-class Product(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(100), unique=True)
-    description = db.Column(db.String(200))
-    price = db.Column(db.Float)
-    qty = db.Column(db.Integer)
+class Todo(db.Model):
 
-    def __init__(self, name, description, price, qty):
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(100))
+    description = db.Column(db.String(200))
+    user = db.Column(db.String(100))
+    status = db.Column(db.String(100))
+    severity = db.Column(db.String(100))
+    workspace = db.Column((db.String(100)))
+    channel = db.Column(db.String(100))
+
+    def __init__(self, name, description, user, status, severity, workspace, channel):
         self.name = name
         self.description = description
-        self.price = price
-        self.qty = qty
+        self.user = user
+        self.status = status
+        self.severity = severity
+        self.workspace = workspace
+        self.channel = channel
 
 
 # Product Schema
-class ProductSchema(ma.Schema):
+class TodoSchema(ma.Schema):
     class Meta:
-        fields = ('id', 'name', 'description', 'price', 'qty')
+        fields = (
+            'id', 'name', 'description', 'user',
+            'status', 'severity', 'workspace', 'channel'
+        )
 
 
 # Init schema
-product_schema = ProductSchema(strict=True)
-products_schema = ProductSchema(many=True, strict=True)
+todo_schema = TodoSchema(strict=True)
+todos_schema = TodoSchema(many=True, strict=True)
 
 
-# Create a Product
-@app.route('/product', methods=['POST'])
-def add_product():
+# Create
+@app.route('/todo', methods=['POST'])
+def add_todo():
+
     name = request.json['name']
     description = request.json['description']
-    price = request.json['price']
-    qty = request.json['qty']
+    user = request.json['user']
+    status = request.json['status']
+    severity = request.json['severity']
+    workspace = request.json['workspace']
+    channel = request.json['channel']
 
-    new_product = Product(name, description, price, qty)
+    new_todo = Todo(name, description, user, status, severity, workspace, channel)
 
-    db.session.add(new_product)
+    db.session.add(new_todo)
     db.session.commit()
 
-    return product_schema.jsonify(new_product)
+    return todo_schema.jsonify(new_todo)
 
 
-# Get All Products
-@app.route('/product', methods=['GET'])
-def get_products():
-    all_products = Product.query.all()
-    result = products_schema.dump(all_products)
+# Get All
+@app.route('/todo', methods=['GET'])
+def get_todos():
+
+    all_todos = Todo.query.all()
+    result = todos_schema.dump(all_todos)
     return jsonify(result.data)
 
 
-# Get Single Products
-@app.route('/product/<id>', methods=['GET'])
-def get_product(id):
-    product = Product.query.get(id)
-    return product_schema.jsonify(product)
+# Get Single
+@app.route('/todo/<id>', methods=['GET'])
+def get_todo(id):
+
+    todo = Todo.query.get(id)
+    return todo_schema.jsonify(todo)
 
 
-# Update a Product
-@app.route('/product/<id>', methods=['PUT'])
-def update_product(id):
-    product = Product.query.get(id)
+@app.route('/your_todos', methods=['GET'])
+def testing_my_view():
 
-    name = request.json['name']
-    description = request.json['description']
-    price = request.json['price']
-    qty = request.json['qty']
-
-    product.name = name
-    product.description = description
-    product.price = price
-    product.qty = qty
-
-    db.session.commit()
-
-    return product_schema.jsonify(product)
-
-
-# Delete Product
-@app.route('/product/<id>', methods=['DELETE'])
-def delete_product(id):
-    product = Product.query.get(id)
-    db.session.delete(product)
-    db.session.commit()
-
-    return product_schema.jsonify(product)
+    print(request.args)
 
 
 # Run server
